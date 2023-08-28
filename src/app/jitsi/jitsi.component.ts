@@ -9,7 +9,7 @@ declare var JitsiMeetExternalAPI: any;
 })
 export class JitsiComponent implements OnInit, AfterViewInit {
 
-    domain: string = "meet.jit.si";
+    domain: string = "meet.spirinova.dev"; //The domain value
     room: any;
     options: any;
     api: any;
@@ -26,7 +26,7 @@ export class JitsiComponent implements OnInit, AfterViewInit {
     ngOnInit(): void {
         this.room = 'bwb-bfqi-vmh'; // set your room name
         this.user = {
-            name: 'Akash Verma' // set your username
+            name: 'Test User' // set your username
         }
     }
 
@@ -45,7 +45,7 @@ export class JitsiComponent implements OnInit, AfterViewInit {
             }
         }
 
-        this.api = new JitsiMeetExternalAPI(this.domain, this.options);
+        this.api = new JitsiMeetExternalAPI(this.domain, this.options); //API
 
         this.api.addEventListeners({
             readyToClose: this.handleClose,

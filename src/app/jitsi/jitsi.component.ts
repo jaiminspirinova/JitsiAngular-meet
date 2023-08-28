@@ -7,7 +7,7 @@ declare var JitsiMeetExternalAPI: any;
     templateUrl: './jitsi.component.html',
     styleUrls: ['./jitsi.component.css']
 })
-export class JitsiComponent implements OnInit, AfterViewInit {
+export class JitsiComponent implements OnInit {
 
     domain: string = "meet.spirinova.dev"; //The domain value
     room: any;
@@ -24,20 +24,50 @@ export class JitsiComponent implements OnInit, AfterViewInit {
     ) { }
 
     ngOnInit(): void {
-        this.room = 'bwb-bfqi-vmh'; // set your room name
+        // this.room = 'bwb-bfqi-vmh'; // set your room name
+        this.room = 'random'; // set your room name
         this.user = {
             name: 'Test User' // set your username
         }
     }
 
-    ngAfterViewInit(): void {
+    // ngAfterViewInit(): void {
+    //     this.options = {
+    //         roomName: this.room,
+    //         width: 900,
+    //         height: 500,
+    //         configOverwrite: { prejoinPageEnabled: false },
+    //         interfaceConfigOverwrite: {
+    //             // overwrite interface properties
+    //         },
+    //         parentNode: document.querySelector('#jitsi-iframe'),
+    //         userInfo: {
+    //             displayName: this.user.name
+    //         }
+    //     }
+
+    //     this.api = new JitsiMeetExternalAPI(this.domain, this.options); //API
+
+    //     this.api.addEventListeners({
+    //         readyToClose: this.handleClose,
+    //         participantLeft: this.handleParticipantLeft,
+    //         participantJoined: this.handleParticipantJoined,
+    //         videoConferenceJoined: this.handleVideoConferenceJoined,
+    //         videoConferenceLeft: this.handleVideoConferenceLeft,
+    //         audioMuteStatusChanged: this.handleMuteStatus,
+    //         videoMuteStatusChanged: this.handleVideoStatus
+    //     });
+    // }
+
+    handleNewMeet = () => {
         this.options = {
             roomName: this.room,
             width: 900,
             height: 500,
-            configOverwrite: { prejoinPageEnabled: false },
+            configOverwrite: { prejoinPageEnabled: false, toolbarButtons: ['hangup', 'microphone', 'camera'] },
             interfaceConfigOverwrite: {
-                // overwrite interface properties
+                DISABLE_DOMINANT_SPEAKER_INDICATOR: true,
+                SHOW_BRAND_WATERMARK: false,
             },
             parentNode: document.querySelector('#jitsi-iframe'),
             userInfo: {
@@ -76,6 +106,7 @@ export class JitsiComponent implements OnInit, AfterViewInit {
     handleVideoConferenceJoined = async (participant) => {
         console.log("handleVideoConferenceJoined", participant); // { roomName: "bwb-bfqi-vmh", id: "8c35a951", displayName: "Akash Verma", formattedDisplayName: "Akash Verma (me)"}
         const data = await this.getParticipants();
+        console.log(data,"This is data")
     }
 
     handleVideoConferenceLeft = () => {
@@ -89,6 +120,12 @@ export class JitsiComponent implements OnInit, AfterViewInit {
 
     handleVideoStatus = (video) => {
         console.log("handleVideoStatus", video); // { muted: true }
+    }
+
+    handleKick = () => {
+        this.api.executeCommand('kickParticipant',
+            "1389ed85" // participantID
+        )
     }
 
     getParticipants() {

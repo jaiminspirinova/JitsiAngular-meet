@@ -10,7 +10,7 @@ declare var JitsiMeetExternalAPI: any;
 export class JitsiComponent implements OnInit {
 
     domain: string = "meet.spirinova.dev"; //The domain value
-    room: any;
+    room: string = '';
     options: any;
     api: any;
     user: any;
@@ -25,7 +25,7 @@ export class JitsiComponent implements OnInit {
 
     ngOnInit(): void {
         // this.room = 'bwb-bfqi-vmh'; // set your room name
-        this.room = 'random'; // set your room name
+        // this.room = 'random'; // set your room name
         this.user = {
             name: 'Test User' // set your username
         }
@@ -60,11 +60,16 @@ export class JitsiComponent implements OnInit {
     // }
 
     handleNewMeet = () => {
+        if (!this.room.trim()) {
+            alert('Please enter a valid room name');
+            return;
+        }
+
         this.options = {
             roomName: this.room,
             width: 900,
             height: 500,
-            configOverwrite: { prejoinPageEnabled: false, toolbarButtons: ['hangup', 'microphone', 'camera'] },
+            configOverwrite: { prejoinPageEnabled: false, toolbarButtons: ['hangup', 'microphone', 'camera', 'invite', "recording"] },
             interfaceConfigOverwrite: {
                 DISABLE_DOMINANT_SPEAKER_INDICATOR: true,
                 SHOW_BRAND_WATERMARK: false,
@@ -84,13 +89,18 @@ export class JitsiComponent implements OnInit {
             videoConferenceJoined: this.handleVideoConferenceJoined,
             videoConferenceLeft: this.handleVideoConferenceLeft,
             audioMuteStatusChanged: this.handleMuteStatus,
-            videoMuteStatusChanged: this.handleVideoStatus
+            videoMuteStatusChanged: this.handleVideoStatus,
+            trackError: this.handleError
         });
     }
 
 
     handleClose = () => {
         console.log("handleClose");
+    }
+
+    handleError = async (error) => {
+        console.log("This is are the errors", error, "ereor erroer erroe r oreor "); // { id: "2baa184e" }
     }
 
     handleParticipantLeft = async (participant) => {
@@ -122,12 +132,6 @@ export class JitsiComponent implements OnInit {
         console.log("handleVideoStatus", video); // { muted: true }
     }
 
-    handleKick = () => {
-        this.api.executeCommand('kickParticipant',
-            "1389ed85" // participantID
-        )
-    }
-
     getParticipants() {
         return new Promise((resolve, reject) => {
             setTimeout(() => {
@@ -138,7 +142,7 @@ export class JitsiComponent implements OnInit {
 
     // custom events
     executeCommand(command: string) {
-        this.api.executeCommand(command);;
+        this.api.executeCommand(command);
         if(command == 'hangup') {
             this.router.navigate(['/thank-you']);
             return;
@@ -151,5 +155,22 @@ export class JitsiComponent implements OnInit {
         if(command == 'toggleVideo') {
             this.isVideoMuted = !this.isVideoMuted;
         }
+    }
+
+
+
+
+    handleKick = () => {
+        this.api.executeCommand('kickParticipant',
+            "1389ed85" // participantID
+        )
+    }
+
+    handleLeaveCall = () => {
+        this.api.executeCommand('hangup')
+    }
+
+    handleEndCall = () => {
+        this.api.executeCommand('endConference')
     }
 }

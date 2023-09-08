@@ -69,7 +69,16 @@ export class JitsiComponent implements OnInit {
             roomName: this.room,
             width: 900,
             height: 500,
-            configOverwrite: { prejoinPageEnabled: false, toolbarButtons: ['hangup', 'microphone', 'camera', 'invite', "recording"] },
+            configOverwrite: { prejoinPageEnabled: false, toolbarButtons: ['hangup', 'microphone', 'camera', 'invite', "recording"], 
+            constraints: {
+                video: {
+                    height: {
+                        ideal: 320,
+                        max: 320,
+                        min: 240
+                    }
+                }
+            }},
             interfaceConfigOverwrite: {
                 DISABLE_DOMINANT_SPEAKER_INDICATOR: true,
                 SHOW_BRAND_WATERMARK: false,
@@ -92,6 +101,7 @@ export class JitsiComponent implements OnInit {
             videoMuteStatusChanged: this.handleVideoStatus,
             trackError: this.handleError
         });
+
     }
 
 
@@ -114,6 +124,7 @@ export class JitsiComponent implements OnInit {
     }
 
     handleVideoConferenceJoined = async (participant) => {
+        this.handleStartRecording();
         console.log("handleVideoConferenceJoined", participant); // { roomName: "bwb-bfqi-vmh", id: "8c35a951", displayName: "Akash Verma", formattedDisplayName: "Akash Verma (me)"}
         const data = await this.getParticipants();
         console.log(data,"This is data")
@@ -172,5 +183,12 @@ export class JitsiComponent implements OnInit {
 
     handleEndCall = () => {
         this.api.executeCommand('endConference')
+    }
+
+    handleStartRecording = () => {
+        this.api.executeCommand("startRecording", {
+            mode: "file",
+            onlySelf: false,
+        })
     }
 }

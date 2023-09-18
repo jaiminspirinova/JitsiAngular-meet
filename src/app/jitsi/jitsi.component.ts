@@ -1,6 +1,7 @@
 import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { Router } from '@angular/router';
 declare var JitsiMeetExternalAPI: any;
+declare const Swal: any;
 
 @Component({
     selector: 'app-jitsi',
@@ -70,8 +71,14 @@ export class JitsiComponent implements OnInit {
             width: 900,
             height: 500,
             configOverwrite: { prejoinPageEnabled: false, toolbarButtons: ['hangup', 'microphone', 'camera', 'invite', "recording"], 
+            apiLogLevels: ['error'],
             constraints: {
                 video: {
+                    width: {
+                        ideal: 480,
+                        max: 480,
+                        min: 240
+                    },
                     height: {
                         ideal: 320,
                         max: 320,
@@ -86,23 +93,36 @@ export class JitsiComponent implements OnInit {
             parentNode: document.querySelector('#jitsi-iframe'),
             userInfo: {
                 displayName: this.user.name
-            }
+            },
         }
 
         this.api = new JitsiMeetExternalAPI(this.domain, this.options); //API
 
         this.api.addEventListeners({
-            readyToClose: this.handleClose,
-            participantLeft: this.handleParticipantLeft,
-            participantJoined: this.handleParticipantJoined,
-            videoConferenceJoined: this.handleVideoConferenceJoined,
+            // readyToClose: this.handleClose,
+            // participantLeft: this.handleParticipantLeft,
+            // participantJoined: this.handleParticipantJoined,
+            // videoConferenceJoined: this.handleVideoConferenceJoined,
             videoConferenceLeft: this.handleVideoConferenceLeft,
-            audioMuteStatusChanged: this.handleMuteStatus,
-            videoMuteStatusChanged: this.handleVideoStatus,
-            trackError: this.handleError
+            // audioMuteStatusChanged: this.handleMuteStatus,
+            // videoMuteStatusChanged: this.handleVideoStatus,
+            // log: this.handleError,
+            cameraError: this.handleCameraError,
+            audioAvailabilityChanged: this.handleAudioAvailabilityChanged
         });
 
     }
+
+    handleCameraError = async (err) => {
+        console.log(err,"This is camera error")
+    }
+    
+    handleAudioAvailabilityChanged = async (err) => {
+        console.log(err,"This is handleAudioAvailabilityChanged")
+    }
+
+
+
 
 
     handleClose = () => {
@@ -110,7 +130,38 @@ export class JitsiComponent implements OnInit {
     }
 
     handleError = async (error) => {
-        console.log("This is are the errors", error, "ereor erroer erroe r oreor "); // { id: "2baa184e" }
+        console.log("This is are the errors",error);
+        if(error?.args?.length === 3 && !error?.args[2]?.includes("WakeLock")){
+            // alert(error?.args[2])
+            Swal.fire({
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                allowEnterKey: false,
+                position: "bottom-end",
+                icon: "error",
+                title: "Error - " + error?.args[2],
+                confirmButtonText: 'Ok'
+            })
+            .then(() => {
+                this.api.dispose();
+            })
+        }
+        else if(error?.args?.length === 5){
+            // alert(error?.args[4]?.message)
+            Swal.fire({
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                allowEnterKey: false,
+                position: "bottom-end",
+                icon: "error",
+                title: "Error - " + error?.args[4]?.message,
+                confirmButtonText: 'Ok'
+            })
+            .then(() => {
+                this.api.dispose();
+            })
+        }
+        else return null
     }
 
     handleParticipantLeft = async (participant) => {
@@ -124,15 +175,16 @@ export class JitsiComponent implements OnInit {
     }
 
     handleVideoConferenceJoined = async (participant) => {
-        this.handleStartRecording();
+        // this.handleStartRecording();
         console.log("handleVideoConferenceJoined", participant); // { roomName: "bwb-bfqi-vmh", id: "8c35a951", displayName: "Akash Verma", formattedDisplayName: "Akash Verma (me)"}
         const data = await this.getParticipants();
         console.log(data,"This is data")
     }
 
     handleVideoConferenceLeft = () => {
-        console.log("handleVideoConferenceLeft");
-        this.router.navigate(['/thank-you']);
+        // console.log("handleVideoConferenceLeft");
+        // this.router.navigate(['/thank-you']);
+        this.api.dispose()
     }
 
     handleMuteStatus = (audio) => {

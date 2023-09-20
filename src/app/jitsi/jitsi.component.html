@@ -1,14 +1,16 @@
-<div id="jitsi-iframe"></div>
+<!-- <div id="jitsi-iframe"></div> -->
 
 <label for="roomName">Enter Room Name:</label>
 <input type="text" id="roomName" [(ngModel)]="room">
 
-<button (click)="handleNewMeet()" style="margin: 2rem;">Call</button>
+<button (click)="fetchData()" style="margin: 2rem;">Call</button>
+<button (click)="handleNewMeetWithRecording()" style="margin: 2rem;">Call with Recording</button>
 
 <button (click)="handleLeaveCall()" style="margin: 2rem;">Leave Call (Leave the meeting)</button>
 <button (click)="handleEndCall()" style="margin: 2rem;">End Call (End the meeting for Everyone)</button>
 <button (click)="handleStartRecording()" style="margin: 2rem;">Start Recording</button>
 <button (click)="handle()" style="margin: 2rem;">Get Participants</button>
+<button (click)="handleIframe()" style="margin: 2rem;">Iframe</button>
 
 <div class="item-center">
     <!-- <span>Custom Controls</span> -->
@@ -20,3 +22,16 @@
     <i (click)="executeCommand('toggleVideo')" class="fas fa-2x grey-color" [ngClass]="isVideoMuted ? 'fa-video-slash' : 'fa-video'" aria-hidden="true" title="Start / Stop camera"></i>
     <i (click)="executeCommand('toggleShareScreen')" class="fas fa-film fa-2x grey-color" aria-hidden="true" title="Share your screen"></i>
 </div> -->
+
+<!-- <button (click)="openModal()">Open Modal</button> -->
+
+<div class="modal" [ngClass]="{ 'is-active': showModal }">
+  <div class="modal-background"></div>
+  <div class="modal-content">
+    <div style="display: flex; gap: 1rem;">
+        <div id="jitsi-iframe"></div>
+        <video style="width: 500px; border: 2px solid red" #localVideo autoplay></video>
+    </div>
+    <button class="modal-close is-large" aria-label="close" (click)="closeModal()">Close</button>
+  </div>
+</div>

@@ -1,4 +1,5 @@
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 declare var JitsiMeetExternalAPI: any;
 declare const Swal: any;
@@ -8,7 +9,25 @@ declare const Swal: any;
     templateUrl: './jitsi.component.html',
     styleUrls: ['./jitsi.component.css']
 })
+
 export class JitsiComponent implements OnInit {
+
+    @ViewChild('localVideo') localVideo: ElementRef;
+
+    private cameraStream: MediaStream | null = null;
+
+    showModal: boolean = false;
+
+    openModal() {
+        this.showModal = true;
+      }
+    
+      async closeModal() {
+        await this.api.executeCommand('endConference')
+        this.showModal = false;
+        this.stopCamera()
+      }
+    
 
     domain: string = "meet.spirinova.dev"; //The domain value
     room: string = '';
@@ -21,7 +40,8 @@ export class JitsiComponent implements OnInit {
     isVideoMuted = false;
 
     constructor(
-        private router: Router
+        private router: Router,
+        private httpClient: HttpClient
     ) { }
 
     ngOnInit(): void {
@@ -60,18 +80,20 @@ export class JitsiComponent implements OnInit {
     //     });
     // }
 
-    handleNewMeet = () => {
+    handleNewMeetWithRecording = () => {
         if (!this.room.trim()) {
             alert('Please enter a valid room name');
             return;
         }
+
+        this.showModal = true;
 
         this.options = {
             roomName: this.room,
             width: 900,
             height: 500,
             configOverwrite: { prejoinPageEnabled: false, 
-                // toolbarButtons: ['hangup', 'microphone', 'camera', 'invite', "recording"], 
+            toolbarButtons: ['hangup', 'microphone', 'camera', 'invite', "recording"], 
             apiLogLevels: ['error'],
             constraints: {
                 video: {
@@ -86,7 +108,8 @@ export class JitsiComponent implements OnInit {
                         min: 240
                     }
                 }
-            }
+            },
+            disableShortcuts: false,
             },
             interfaceConfigOverwrite: {
                 DISABLE_DOMINANT_SPEAKER_INDICATOR: true,
@@ -103,11 +126,80 @@ export class JitsiComponent implements OnInit {
         this.api.addEventListeners({
             // participantLeft: this.handleParticipantLeft,
             // participantJoined: this.handleParticipantJoined,
-            // videoConferenceJoined: this.handleVideoConferenceJoined,
+            videoConferenceJoined: () => {
+                this.handleStartRecording();
+            },
             // videoConferenceLeft: this.handleVideoConferenceLeft,
             // audioMuteStatusChanged: this.handleMuteStatus,
             // videoMuteStatusChanged: this.handleVideoStatus,
             // log: this.handleError,
+            // cameraError: this.handleCameraError,
+            // audioAvailabilityChanged: this.handleAudioAvailabilityChanged,
+            // audioMuteStatusChanged: this.handleAudioMuteStatusChanged,
+            // browserSupport: this.handleBrowserSupport,
+            // micError: this.handleMicError,
+            // tileViewChanged: this.handleTileViewChanged,
+            // notificationTriggered: this.handleNotificationTriggered,
+            readyToClose: this.handleReadyToClose,
+            // suspendDetected: this.handleSuspendDetected,
+            // peerConnectionFailure: this.handlePeerConnectionFailure,
+            // p2pStatusChanged: this.handleP2pStatusChanged,
+        });
+
+    }
+
+    handleNewMeet = () => {
+        if (!this.room.trim()) {
+            alert('Please enter a valid room name');
+            return;
+        }
+
+        this.showModal = true;
+        this.handleIframe();
+
+        this.options = {
+            roomName: this.room,
+            width: 500,
+            height: 500,
+            configOverwrite: { prejoinPageEnabled: false, 
+            toolbarButtons: [], 
+            apiLogLevels: ['error'],
+            constraints: {
+                video: {
+                    width: {
+                        ideal: 480,
+                        max: 480,
+                        min: 240
+                    },
+                    height: {
+                        ideal: 320,
+                        max: 320,
+                        min: 240
+                    }
+                }
+            },
+            disableShortcuts: false,
+            },
+            interfaceConfigOverwrite: {
+                DISABLE_DOMINANT_SPEAKER_INDICATOR: true,
+                SHOW_BRAND_WATERMARK: false,
+            },
+            parentNode: document.querySelector('#jitsi-iframe'),
+            userInfo: {
+                displayName: this.user.name
+            },
+        }
+
+        this.api = new JitsiMeetExternalAPI(this.domain, this.options); //API
+
+        this.api.addEventListeners({
+            // participantLeft: this.handleParticipantLeft,
+            // participantJoined: this.handleParticipantJoined,
+            videoConferenceJoined: this.handleVideoConferenceJoined,
+            // videoConferenceLeft: this.handleVideoConferenceLeft,
+            // audioMuteStatusChanged: this.handleMuteStatus,
+            // videoMuteStatusChanged: this.handleVideoStatus,
+            log: this.handleError,
             // cameraError: this.handleCameraError,
             // audioAvailabilityChanged: this.handleAudioAvailabilityChanged,
             // audioMuteStatusChanged: this.handleAudioMuteStatusChanged,
@@ -160,6 +252,7 @@ export class JitsiComponent implements OnInit {
     }
 
     handleVideoConferenceJoined = async (participant) => {
+        this.api.executeCommand('toggleTileView');
         // this.handleStartRecording();
         console.log(participant, "This is handleVideoConferenceJoined");
         // const data = await this.getParticipants();
@@ -190,6 +283,30 @@ export class JitsiComponent implements OnInit {
     }
 
 
+    handleIframe =  () => {
+        navigator.mediaDevices
+        .getUserMedia({ video: true})
+        .then((stream) => {
+        //   this.localVideo.nativeElement.srcObject = stream;
+          const videoElement = this.localVideo.nativeElement;
+          videoElement.srcObject = stream;
+          this.cameraStream = stream;
+        })
+        .catch((error) => {
+          alert('Error accessing camera');
+        });
+    }
+    
+    stopCamera() {
+        if (this.cameraStream) {
+          const tracks = this.cameraStream.getTracks();
+          tracks.forEach((track) => track.stop());
+          this.localVideo.nativeElement.srcObject = null;
+          this.cameraStream = null;
+        }
+      }
+
+
 
 
 
@@ -206,9 +323,9 @@ export class JitsiComponent implements OnInit {
                 title: "Error - " + error?.args[2],
                 confirmButtonText: 'Ok'
             })
-            .then(() => {
-                this.api.dispose();
-            })
+            // .then(() => {
+            //     this.api.dispose();
+            // })
         }
         else if(error?.args?.length === 5){
             // alert(error?.args[4]?.message)
@@ -221,11 +338,23 @@ export class JitsiComponent implements OnInit {
                 title: "Error - " + error?.args[4]?.message,
                 confirmButtonText: 'Ok'
             })
-            .then(() => {
-                this.api.dispose();
-            })
+            // .then(() => {
+            //     this.api.dispose();
+            // })
         }
         else return null
+    }
+
+    //API FUNCTIONS /////
+
+    fetchData() {
+        const apiUrl = 'http://ec2-3-111-171-157.ap-south-1.compute.amazonaws.com:8085/api/JitsiAPI/GetChatRoomDetails?ChatRoomID=102d7682-56da-11ee-aa1c-0605fa';
+    
+        this.httpClient.get(apiUrl).subscribe((data) => {
+            console.log('GET Response:', data);
+        }, (error) => {
+            console.error('GET Error:', error);
+        });
     }
 
 
@@ -266,9 +395,6 @@ export class JitsiComponent implements OnInit {
             this.isVideoMuted = !this.isVideoMuted;
         }
     }
-
-
-
 
     handleKick = () => {
         this.api.executeCommand('kickParticipant',

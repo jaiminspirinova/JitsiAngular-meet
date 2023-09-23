@@ -1,5 +1,5 @@
 import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders  } from '@angular/common/http';
 import { Router } from '@angular/router';
 declare var JitsiMeetExternalAPI: any;
 declare const Swal: any;
@@ -18,13 +18,17 @@ export class JitsiComponent implements OnInit {
 
     showModal: boolean = false;
 
+    baseURL = "http://ec2-3-111-171-157.ap-south-1.compute.amazonaws.com:8085";
+
     openModal() {
         this.showModal = true;
       }
     
-      async closeModal() {
-        await this.api.executeCommand('endConference')
-        this.showModal = false;
+    closeModal() {
+        this.api.executeCommand('hangup')
+        setTimeout(() => {
+            this.showModal = false;
+        }, 1000);
         this.stopCamera()
       }
     
@@ -34,6 +38,8 @@ export class JitsiComponent implements OnInit {
     options: any;
     api: any;
     user: any;
+    roomID : any;
+    meetID : any;
 
     // For Custom Controls
     isAudioMuted = false;
@@ -196,7 +202,7 @@ export class JitsiComponent implements OnInit {
             // participantLeft: this.handleParticipantLeft,
             // participantJoined: this.handleParticipantJoined,
             videoConferenceJoined: this.handleVideoConferenceJoined,
-            // videoConferenceLeft: this.handleVideoConferenceLeft,
+            videoConferenceLeft: this.handleVideoConferenceLeft,
             // audioMuteStatusChanged: this.handleMuteStatus,
             // videoMuteStatusChanged: this.handleVideoStatus,
             log: this.handleError,
@@ -255,11 +261,28 @@ export class JitsiComponent implements OnInit {
         this.api.executeCommand('toggleTileView');
         // this.handleStartRecording();
         console.log(participant, "This is handleVideoConferenceJoined");
-        // const data = await this.getParticipants();
+        // const data2 = await this.getParticipants();
+        // console.warn(data2,"This is data")
+
+        this.api.getRoomsInfo().then(rooms => {
+            rooms?.rooms.map((item) => {
+                this.roomID = item?.id;
+                this.meetID = item?.jid;
+                console.warn(rooms,"This is room item");
+            })
+
+            const data = [{RoomID: this.roomID ,MeetingID: this.meetID ,MeetingStartTime:new Date(),DoctorID:"0ab80436-5895-4ae5-8074-f58827a12f8a"}];
+            // console.warn(data,"This is room item");
+            this.handleMeetStart(data);
+        })   
     }
 
     handleVideoConferenceLeft = async (participant) => {
         console.log(participant, "This is handleVideoConferenceLeft");
+
+         const data = [{RoomID: this.roomID ,MeetingID: this.meetID ,MeetingEndTime:new Date(),DoctorID:"0ab80436-5895-4ae5-8074-f58827a12f8a"}];
+        // console.warn(data,"This is room item");
+        this.handleMeetEnd(data);
     }
 
     handleVideoQualityChanged = async (res) => {
@@ -348,13 +371,43 @@ export class JitsiComponent implements OnInit {
     //API FUNCTIONS /////
 
     fetchData() {
-        const apiUrl = 'http://ec2-3-111-171-157.ap-south-1.compute.amazonaws.com:8085/api/JitsiAPI/GetChatRoomDetails?ChatRoomID=102d7682-56da-11ee-aa1c-0605fa';
+        const apiUrl = `${this.baseURL}/api/JitsiAPI/GetChatRoomDetails?ChatRoomID=102d7682-56da-11ee-aa1c-0605fa`;
     
         this.httpClient.get(apiUrl).subscribe((data) => {
             console.log('GET Response:', data);
         }, (error) => {
             console.error('GET Error:', error);
         });
+
+        console.log(new Date())
+    }
+
+    handleMeetStart(data){
+        const apiUrl = `${this.baseURL}/api/JitsiAPI/UpdMeetingStartDetails`;
+
+          this.httpClient.post(apiUrl, data).subscribe(
+            (data) => {
+              console.warn('POST Response:', data);
+            },
+            (error) => {
+              console.error('POST Error:', error);
+            }
+          );
+      
+    }
+
+    handleMeetEnd(data){
+        const apiUrl = `${this.baseURL}/api/JitsiAPI/UpdMeetingEndDetails`;
+
+          this.httpClient.post(apiUrl, data).subscribe(
+            (data) => {
+              console.warn('POST Response:', data);
+            },
+            (error) => {
+              console.error('POST Error:', error);
+            }
+          );
+      
     }
 
 

@@ -3,7 +3,7 @@
 <label for="roomName">Enter Room Name:</label>
 <input type="text" id="roomName" [(ngModel)]="room">
 
-<button (click)="fetchData()" style="margin: 2rem;">Call</button>
+<button (click)="handleNewMeet()" style="margin: 2rem;">Call</button>
 <button (click)="handleNewMeetWithRecording()" style="margin: 2rem;">Call with Recording</button>
 
 <button (click)="handleLeaveCall()" style="margin: 2rem;">Leave Call (Leave the meeting)</button>

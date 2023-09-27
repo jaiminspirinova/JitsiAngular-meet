@@ -45,6 +45,10 @@ export class PatientScreenComponent implements OnInit {
   roomID : any;
   meetID : any;
 
+  remainingTime: number = 900;
+
+  private timeLeft: any;
+
   constructor(
     private router: Router,
     private httpClient: HttpClient
@@ -58,7 +62,7 @@ export class PatientScreenComponent implements OnInit {
     this.api.executeCommand('hangup')
     setTimeout(() => {
         this.showModal = false;
-    }, 1000);
+    }, 500);
     this.stopCamera()
   }
 
@@ -115,9 +119,36 @@ export class PatientScreenComponent implements OnInit {
     return names[randomIndex];
   }
 
+  getCurrentDateTime() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+  
+    const formattedDateTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    return formattedDateTime;
+  }
+
+  decrementTime() {
+    if (this.remainingTime > 0) {
+      this.remainingTime -= 1;
+      this.timeLeft = setTimeout(() => {
+        this.decrementTime();
+      }, 1000); // Update every 1 second (1000 milliseconds)
+    } else {
+      this.closeModal();
+    }
+  }
+  
+
   handleCreateRoom() {
+    const currentDateTime = this.getCurrentDateTime();
+    console.warn(currentDateTime);
     const apiUrl = `${this.baseURL}/api/JitsiAPI/SaveChatRoomSessionDetails`;
-    const data = [{CallDatetime: new Date(), PatientID: this.randomData.uid, DoctorID: this.randomData.docuid}]
+    const data = [{CallDatetime: currentDateTime, PatientID: this.randomData.uid, DoctorID: this.randomData.docuid}]
 
     this.httpClient.post<ApiResponse>(apiUrl, data).subscribe(
       (data) => {
@@ -137,6 +168,7 @@ export class PatientScreenComponent implements OnInit {
   handleCall = () => {
     this.showModal = true;
     this.handleIframe();
+    this.remainingTime = 900;
 
     this.options = {
       roomName: this.room,
@@ -176,6 +208,8 @@ export class PatientScreenComponent implements OnInit {
     this.api.addEventListeners({
       videoConferenceJoined: this.handleVideoConferenceJoined,
       videoConferenceLeft: this.handleVideoConferenceLeft,
+      participantLeft: this.handleParticipantLeft,
+      participantJoined: this.handleParticipantJoined,
       log: this.handleError,
       readyToClose: this.handleReadyToClose,
     });
@@ -207,6 +241,7 @@ stopCamera() {
 
   handleVideoConferenceJoined = async (participant) => {
     this.api.executeCommand('toggleTileView');
+    this.decrementTime();
     // this.handleStartRecording();
 
     this.api.getRoomsInfo().then(rooms => {
@@ -214,7 +249,6 @@ stopCamera() {
           // this.roomID = item?.id;
           this.meetID = item?.jid;
           console.warn(rooms,"This is room item");
-          console.warn(this.randomData.uid,"This is this.randomData.uid");
       })
 
       const data = [{RoomID: this.room ,MeetingID: this.meetID ,MeetingStartTime:new Date(),DoctorID: this.randomData.docuid, PatientID: this.randomData.uid}];
@@ -227,9 +261,17 @@ stopCamera() {
     // this.api.executeCommand('toggleTileView');
     // this.handleStartRecording();
 
-    const data = [{RoomID: this.room ,MeetingID: this.meetID ,MeetingEndTime:new Date()}];
+    const data = [{RoomID: this.room ,MeetingID: this.meetID ,MeetingEndTime:new Date(new Date().getTime())}];
         // console.warn(data,"This is room item");
     this.handleMeetEnd(data);
+}
+
+handleParticipantJoined = async (participant) => {
+  clearTimeout(this.timeLeft)
+}
+
+handleParticipantLeft = async (participant) => {
+
 }
 
 handleError = async (error) => {

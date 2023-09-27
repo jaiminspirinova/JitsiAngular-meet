@@ -72,49 +72,20 @@ export class DoctorScreenComponent implements OnInit {
     this.httpClient.get<ApiResponse>(apiUrl).subscribe((data) => {
       // console.log('GET Response:', data);
       if (data.response && data.response.table) {
-        this.responseTable = data.response.table;
+        // this.responseTable = data.response.table;
 
-        // const currentTime = new Date();
-        // const tenMinutesAgo = new Date(currentTime.getTime() - 10 * 60000); // 10 minutes in milliseconds
+        const currentTime = new Date();
+        const tenMinutesAgo = new Date(currentTime.getTime() - 15 * 60000); // 10 minutes in milliseconds
 
-        // this.responseTable = data.response.table.filter((row) => {
-        //   const callDateTime = new Date(row.calldatetime);
-        //   return callDateTime >= tenMinutesAgo && callDateTime <= currentTime;
-        // });
+        this.responseTable = data.response.table.filter((row) => {
+          const callDateTime = new Date(row.calldatetime);
+          return callDateTime >= tenMinutesAgo && callDateTime <= currentTime;
+        });
       }
     }, (error) => {
       console.error('GET Error:', error);
     });
   }
-
-  // fetchData() {
-  //   const apiUrl = `${this.baseURL}/api/JitsiAPI/GetPendingPatientList`;
-  
-  //   this.httpClient.get<ApiResponse>(apiUrl).subscribe((data) => {
-  //     if (data.response && data.response.table) {
-  //       const currentTime = new Date();
-  //       const tenMinutesAgo = new Date(currentTime.getTime() - 10 * 60000); // 10 minutes in milliseconds
-  
-  //       this.responseTable = data.response.table.filter((row) => {
-  //         // Parse the date string into a JavaScript Date object
-  //         const callDateTimeParts = row.calldatetime.split(/\D/); // Split the string by non-numeric characters
-  //         const callDateTime = new Date(
-  //           Number(callDateTimeParts[0]), // Year
-  //           Number(callDateTimeParts[1]) - 1, // Month (Note: Months are zero-based)
-  //           Number(callDateTimeParts[2]), // Day
-  //           Number(callDateTimeParts[3]), // Hours
-  //           Number(callDateTimeParts[4]), // Minutes
-  //           Number(callDateTimeParts[5])  // Seconds
-  //         );
-  
-  //         return callDateTime >= tenMinutesAgo && callDateTime <= currentTime;
-  //       });
-  //       console.log(thisresponseTable)
-  //     }
-  //   }, (error) => {
-  //     console.error('GET Error:', error);
-  //   });
-  // }
 
   handleCall(chatRoomID: string, sessionID: string) { 
     this.chatRoomID = chatRoomID;
@@ -210,7 +181,7 @@ stopCamera() {
     // this.api.executeCommand('toggleTileView');
     // this.handleStartRecording();
 
-    const data = [{RoomID: this.chatRoomID ,MeetingID: this.sessionID ,MeetingEndTime:new Date()}];
+    const data = [{RoomID: this.chatRoomID ,MeetingID: this.sessionID ,MeetingEndTime:new Date(new Date().getTime())}];
         // console.warn(data,"This is room item");
     this.handleMeetEnd(data);
 }

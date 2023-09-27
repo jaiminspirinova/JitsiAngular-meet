@@ -1,20 +1,12 @@
-.fas {
-    padding-right: 10px;
-    padding-left: 10px;
-    cursor: pointer;
+th{
+    padding: 25px 50px;
 }
 
-.item-center {
-    text-align: center;
+table, th, td {
+    border: 2px solid black;
+    border-collapse: collapse;
 }
 
-.grey-color {
-    color: grey;
-}
-
-.red-color {
-    color: red;
-}
 
 .modal {
     display: none;
@@ -58,10 +50,5 @@
 
   #localVideo {
     width: 500px !important; /* Adjust to your layout */
-    height: 270px !important; /* Maintain the aspect ratio */
+    height: 500px !important; /* Maintain the aspect ratio */
   }
-
-video{
-  object-fit: cover !important;
-  /* overflow: visible !important; */
-}

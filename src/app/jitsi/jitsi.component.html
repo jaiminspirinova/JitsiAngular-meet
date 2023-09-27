@@ -1,5 +1,7 @@
 <!-- <div id="jitsi-iframe"></div> -->
 
+<h1 style="text-align: center;">This is testing screen</h1>
+
 <label for="roomName">Enter Room Name:</label>
 <input type="text" id="roomName" [(ngModel)]="room">
 
@@ -30,7 +32,9 @@
   <div class="modal-content">
     <div style="display: flex; gap: 1rem;">
         <div id="jitsi-iframe"></div>
-        <video style="width: 500px; border: 2px solid red" #localVideo autoplay></video>
+        <div style="background-color: black; display: flex; justify-content: center; align-items: center;">
+          <video style="margin: 8px; width: 500px; height: 270px; border-radius: 6px;" #localVideo autoplay></video>
+        </div>
     </div>
     <button class="modal-close is-large" aria-label="close" (click)="closeModal()">Close</button>
   </div>

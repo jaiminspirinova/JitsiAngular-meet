@@ -18,7 +18,7 @@ export class JitsiComponent implements OnInit {
 
     showModal: boolean = false;
 
-    baseURL = "http://ec2-3-111-171-157.ap-south-1.compute.amazonaws.com:8085";
+    baseURL = "https://ec2-3-111-171-157.ap-south-1.compute.amazonaws.com";
 
     openModal() {
         this.showModal = true;
@@ -273,7 +273,7 @@ export class JitsiComponent implements OnInit {
 
             const data = [{RoomID: this.roomID ,MeetingID: this.meetID ,MeetingStartTime:new Date(),DoctorID:"0ab80436-5895-4ae5-8074-f58827a12f8a"}];
             // console.warn(data,"This is room item");
-            this.handleMeetStart(data);
+            // this.handleMeetStart(data);
         })   
     }
 
@@ -282,7 +282,7 @@ export class JitsiComponent implements OnInit {
 
          const data = [{RoomID: this.roomID ,MeetingID: this.meetID ,MeetingEndTime:new Date(),DoctorID:"0ab80436-5895-4ae5-8074-f58827a12f8a"}];
         // console.warn(data,"This is room item");
-        this.handleMeetEnd(data);
+        // this.handleMeetEnd(data);
     }
 
     handleVideoQualityChanged = async (res) => {

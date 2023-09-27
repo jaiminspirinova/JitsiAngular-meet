@@ -1,0 +1,38 @@
+<h1 style="text-align: center;">This is Doctor screen</h1>
+
+<button (click)="fetchData()">Refresh</button>
+
+<table>
+    <thead>
+      <tr>
+        <th>Session ID</th>
+        <th>Call Date & Time</th>
+        <th>Patient ID</th>
+        <th>Chat Room ID</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let row of responseTable">
+        <td>{{ row.sessionid }}</td>
+        <td>{{ row.calldatetime }}</td>
+        <td>{{ row.patientID }}</td>
+        <td>{{ row.chatRoomID }}</td>
+        <td><button (click)="handleCall(row.chatRoomID, row.sessionid)">Call</button></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="modal" [ngClass]="{ 'is-active': showModal }">
+    <div class="modal-background"></div>
+    <div class="modal-content">
+      <div style="display: flex; gap: 1rem;">
+          <div id="jitsi-iframe"></div>
+          <div style="background-color: black; display: flex; justify-content: center; align-items: center;">
+            <video style="margin: 8px; width: 500px; height: 270px; border-radius: 6px;" #localVideo autoplay></video>
+          </div>
+      </div>
+      <button class="modal-close is-large" aria-label="close" (click)="closeModal()">Close</button>
+    </div>
+  </div>
+  

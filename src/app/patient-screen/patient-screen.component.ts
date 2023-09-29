@@ -1,6 +1,6 @@
 import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { HttpClient, HttpHeaders  } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute  } from '@angular/router';
 declare var JitsiMeetExternalAPI: any;
 declare const Swal: any;
 
@@ -45,13 +45,14 @@ export class PatientScreenComponent implements OnInit {
   roomID : any;
   meetID : any;
 
-  remainingTime: number = 900;
+  remainingTime: number = 120;
 
   private timeLeft: any;
 
   constructor(
     private router: Router,
-    private httpClient: HttpClient
+    private httpClient: HttpClient,
+    private route: ActivatedRoute
   ) { }
 
   ngOnInit(): void {
@@ -98,11 +99,13 @@ export class PatientScreenComponent implements OnInit {
 
   generateUID(): string {
     // Generate a UUID (you can use a library for more robust generation)
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    // const prefix = this.route.snapshot.data.prefix || 'prod';
+    const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
       const r = Math.random() * 16 | 0;
       const v = c === 'x' ? r : (r & 0x3 | 0x8);
       return v.toString(16);
     });
+    return `prod-${uuid}`;
   }
 
   generateRandomName(): string {
@@ -168,7 +171,7 @@ export class PatientScreenComponent implements OnInit {
   handleCall = () => {
     this.showModal = true;
     this.handleIframe();
-    this.remainingTime = 900;
+    this.remainingTime = 120;
 
     this.options = {
       roomName: this.room,

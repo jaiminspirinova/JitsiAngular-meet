@@ -1,6 +1,6 @@
 import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { HttpClient, HttpHeaders  } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute  } from '@angular/router'; 
 declare var JitsiMeetExternalAPI: any;
 declare const Swal: any;
 
@@ -46,7 +46,9 @@ export class DoctorScreenComponent implements OnInit {
   sessionID : any;
 
   constructor(
-    private httpClient: HttpClient
+    private router: Router,
+    private httpClient: HttpClient,
+    private route: ActivatedRoute
   ) { }
 
   ngOnInit(): void {
@@ -67,6 +69,7 @@ export class DoctorScreenComponent implements OnInit {
   }
 
   fetchData() {
+    // const prefix = this.route.snapshot.data.prefix || 'prod';
     const apiUrl = `${this.baseURL}/api/JitsiAPI/GetPendingPatientList`;
 
     this.httpClient.get<ApiResponse>(apiUrl).subscribe((data) => {
@@ -75,11 +78,14 @@ export class DoctorScreenComponent implements OnInit {
         // this.responseTable = data.response.table;
 
         const currentTime = new Date();
-        const tenMinutesAgo = new Date(currentTime.getTime() - 15 * 60000); // 10 minutes in milliseconds
+        const fifteenMinutesAgo = new Date(currentTime.getTime() - 15 * 60000); // 10 minutes in milliseconds
 
         this.responseTable = data.response.table.filter((row) => {
           const callDateTime = new Date(row.calldatetime);
-          return callDateTime >= tenMinutesAgo && callDateTime <= currentTime;
+          const isWithinTimeRange = callDateTime >= fifteenMinutesAgo && callDateTime <= currentTime;
+          const hasProdInPatientID = row.patientID.includes("prod"); // Check if "prod" is present in patientID
+
+        return isWithinTimeRange && hasProdInPatientID;
         });
       }
     }, (error) => {

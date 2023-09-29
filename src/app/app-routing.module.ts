@@ -21,11 +21,23 @@ const routes: Routes = [
     },
     {
         path: 'patient',
-        component: PatientScreenComponent
+        component: PatientScreenComponent,
+        data: { prefix: 'prod' }
+    },
+    {
+        path: 'test-patient',
+        component: PatientScreenComponent,
+        data: { prefix: 'test' }
     },
     {
         path: 'doctor',
-        component: DoctorScreenComponent
+        component: DoctorScreenComponent,
+        data: { prefix: 'prod' }
+    },
+    {
+        path: 'test-doctor',
+        component: DoctorScreenComponent,
+        data: { prefix: 'test' }
     }
 ];
 

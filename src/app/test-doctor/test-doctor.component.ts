@@ -19,11 +19,11 @@ interface ApiResponse {
 }
 
 @Component({
-  selector: 'app-doctor-screen',
-  templateUrl: './doctor-screen.component.html',
-  styleUrls: ['./doctor-screen.component.css']
+  selector: 'app-test-doctor',
+  templateUrl: './test-doctor.component.html',
+  styleUrls: ['./test-doctor.component.css']
 })
-export class DoctorScreenComponent implements OnInit {
+export class TestDoctorComponent implements OnInit {
 
   @ViewChild('localVideo') localVideo: ElementRef;
 
@@ -64,7 +64,8 @@ export class DoctorScreenComponent implements OnInit {
     this.api.executeCommand('hangup')
     setTimeout(() => {
         this.showModal = false;
-    }, 1000);
+    }, 500);
+    this.api.executeCommand('stopRecording','file');
     this.stopCamera()
   }
 
@@ -83,7 +84,7 @@ export class DoctorScreenComponent implements OnInit {
         this.responseTable = data.response.table.filter((row) => {
           const callDateTime = new Date(row.calldatetime);
           const isWithinTimeRange = callDateTime >= fifteenMinutesAgo && callDateTime <= currentTime;
-          const hasProdInPatientID = row.patientID.includes("prod"); // Check if "prod" is present in patientID
+          const hasProdInPatientID = row.patientID.includes("test"); // Check if "prod" is present in patientID
 
         return isWithinTimeRange && hasProdInPatientID;
         });
@@ -138,6 +139,7 @@ export class DoctorScreenComponent implements OnInit {
     this.api.addEventListeners({
       videoConferenceJoined: this.handleVideoConferenceJoined,
       videoConferenceLeft: this.handleVideoConferenceLeft,
+      participantLeft: this.handleParticipantLeft,
       log: this.handleError,
       readyToClose: this.handleReadyToClose,
     });
@@ -184,12 +186,15 @@ stopCamera() {
 }
 
   handleVideoConferenceLeft = async (participant) => {
-    // this.api.executeCommand('toggleTileView');
-    // this.handleStartRecording();
-
+    this.api.executeCommand("stopRecording", "file")
     const data = [{RoomID: this.chatRoomID ,MeetingID: this.sessionID ,MeetingEndTime:new Date(new Date().getTime())}];
         // console.warn(data,"This is room item");
     this.handleMeetEnd(data);
+}
+
+handleParticipantLeft = async (participant) => {
+  this.api.executeCommand("stopRecording", "file")
+  this.closeModal();
 }
 
 handleError = async (error) => {
@@ -260,3 +265,4 @@ handleMeetEnd(data){
 
 
 }
+

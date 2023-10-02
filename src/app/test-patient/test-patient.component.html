@@ -1,0 +1,44 @@
+<h1 style="text-align: center;">This is Patient screen</h1>
+
+<div style="margin-bottom: 2rem;">
+    <button (click)="generateRandomUser()">Generate Random Patient</button>
+</div>
+  
+  <table *ngIf="randomData">
+    <tr>
+      <th>Patient UID</th>
+      <th>Patient Name</th>
+      <th>Doctor UID</th>
+      <th>Doctor Name</th>
+    </tr>
+    <tr style="text-align: center;">
+      <td>{{ randomData.uid }}</td>
+      <td>{{ randomData.name }}</td>
+      <td>{{ randomData.docuid }}</td>
+      <td>{{ randomData.docname }}</td>
+      <td><button (click)="handleCreateRoom()">Call</button></td>
+    </tr>
+  </table>
+
+  <div class="modal" [ngClass]="{ 'is-active': showModal }">
+    <div class="modal-background"></div>
+    <div class="modal-content">
+      <div style="display: flex; gap: 1rem;">
+          <div id="jitsi-iframe"></div>
+          <div style="background-color: black; display: flex; justify-content: center; align-items: center;">
+            <video style="margin: 8px; width: 500px; height: 270px; border-radius: 6px;" #localVideo autoplay></video>
+          </div>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-top: 1rem;">
+        <button class="modal-close is-large" aria-label="close" (click)="handleStartRecording()">Start Recording</button>
+        <button class="modal-close is-large" aria-label="close" (click)="getRoomInfo()">Get Room Info</button>
+        <button class="modal-close is-large" aria-label="close" (click)="closeModal()">Close</button>
+      </div>
+      <p>Time remaining: {{ remainingTime }}</p>
+    </div>
+  </div>
+  
+  <audio id="ringingAudio"  loop>
+    <source src="http://www.samhallas.co.uk/repository/recordings/706_bell.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>

@@ -4,6 +4,8 @@ import { DoctorScreenComponent } from './doctor-screen/doctor-screen.component';
 import { HomeComponent } from './home/home.component';
 import { JitsiComponent } from './jitsi/jitsi.component';
 import { PatientScreenComponent } from './patient-screen/patient-screen.component';
+import { TestDoctorComponent } from './test-doctor/test-doctor.component';
+import { TestPatientComponent } from './test-patient/test-patient.component';
 import { ThankYouComponent } from './thank-you/thank-you.component';
 
 const routes: Routes = [
@@ -22,22 +24,22 @@ const routes: Routes = [
     {
         path: 'patient',
         component: PatientScreenComponent,
-        data: { prefix: 'prod' }
+        // data: { prefix: 'prod' }
     },
     {
         path: 'test-patient',
-        component: PatientScreenComponent,
-        data: { prefix: 'test' }
+        component: TestPatientComponent,
+        // data: { prefix: 'test' }
     },
     {
         path: 'doctor',
         component: DoctorScreenComponent,
-        data: { prefix: 'prod' }
+        // data: { prefix: 'prod' }
     },
     {
         path: 'test-doctor',
-        component: DoctorScreenComponent,
-        data: { prefix: 'test' }
+        component: TestDoctorComponent,
+        // data: { prefix: 'test' }
     }
 ];
 

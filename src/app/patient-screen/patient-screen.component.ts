@@ -143,9 +143,9 @@ export class PatientScreenComponent implements OnInit {
       }, 1000); // Update every 1 second (1000 milliseconds)
     } else {
       this.closeModal();
+      // this.stopAudio();
     }
   }
-  
 
   handleCreateRoom() {
     const currentDateTime = this.getCurrentDateTime();
@@ -168,14 +168,38 @@ export class PatientScreenComponent implements OnInit {
 
   }
 
+  playAudio() {
+    const audioElement = document.getElementById('ringingAudio') as HTMLAudioElement;
+    audioElement.play();
+  }
+
+  stopAudio() {
+    const audioElement = document.getElementById('ringingAudio') as HTMLAudioElement;
+    audioElement.pause();
+    audioElement.currentTime = 0; // Reset the audio to the beginning
+  }
+
   handleCall = () => {
-    this.showModal = true;
-    this.handleIframe();
+
+    Swal.fire({
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      allowEnterKey: false,
+      icon: "info",
+      title: "Ringing....",
+      confirmButtonText: 'Ok'
+  })
+  
+  this.playAudio();
+
+    // this.showModal = true;
+
+    // this.handleIframe();
     this.remainingTime = 120;
 
     this.options = {
       roomName: this.room,
-      width: 500,
+      width: 900,
       height: 500,
       configOverwrite: { prejoinPageEnabled: false, 
       toolbarButtons: [], 
@@ -213,7 +237,8 @@ export class PatientScreenComponent implements OnInit {
       videoConferenceLeft: this.handleVideoConferenceLeft,
       participantLeft: this.handleParticipantLeft,
       participantJoined: this.handleParticipantJoined,
-      log: this.handleError,
+      recordingStatusChanged: this.handleRecordingStatusChanged,
+      // log: this.handleError,
       readyToClose: this.handleReadyToClose,
     });
 
@@ -260,21 +285,35 @@ stopCamera() {
   })
 }
 
-  handleVideoConferenceLeft = async (participant) => {
-    // this.api.executeCommand('toggleTileView');
-    // this.handleStartRecording();
-
-    const data = [{RoomID: this.room ,MeetingID: this.meetID ,MeetingEndTime:new Date(new Date().getTime())}];
-        // console.warn(data,"This is room item");
-    this.handleMeetEnd(data);
+handleVideoConferenceLeft = async (participant) => {
+  this.api.executeCommand("stopRecording", "file")
+  const data = [{RoomID: this.room ,MeetingID: this.meetID ,MeetingEndTime:new Date(new Date().getTime())}];
+  this.handleMeetEnd(data);
 }
 
 handleParticipantJoined = async (participant) => {
+  Swal.close();
+  this.showModal = true;
+  this.stopAudio();
   clearTimeout(this.timeLeft)
+
+  this.api.getRoomsInfo().then(rooms => {
+    rooms?.rooms?.map((item) => {
+      item.participants?.map((item) => {
+        this.api.executeCommand("grantModerator", item.id)
+        console.warn(item.id,"This is id")
+      })
+    })
+})
 }
 
 handleParticipantLeft = async (participant) => {
+  this.api.executeCommand("stopRecording", "file")
+  this.closeModal();
+}
 
+handleRecordingStatusChanged = async (res) => {
+  console.warn(res,"THis is handleRecordingStatusChanged")
 }
 
 handleError = async (error) => {
@@ -341,7 +380,20 @@ handleMeetEnd(data){
         console.error('POST Error:', error);
       }
     );
+}
 
+handleStartRecording = () => {
+  this.api.executeCommand("startRecording", {
+      mode: "file",
+      onlySelf: false,
+  })
+}
+
+getRoomInfo = () => {
+  this.api.getRoomsInfo().then((room) => {
+    console.log(room,"This is room info")
+  })
 }
 
 }
+

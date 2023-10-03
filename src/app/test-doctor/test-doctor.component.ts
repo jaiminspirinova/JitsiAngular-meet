@@ -99,11 +99,11 @@ export class TestDoctorComponent implements OnInit {
     this.sessionID = sessionID;
 
     this.showModal = true;
-    this.handleIframe();
+    // this.handleIframe();
 
     this.options = {
       roomName: chatRoomID,
-      width: 500,
+      width: 900,
       height: 500,
       configOverwrite: { prejoinPageEnabled: false, 
       toolbarButtons: [], 

@@ -190,16 +190,16 @@ export class TestPatientComponent implements OnInit {
       confirmButtonText: 'Ok'
   })
   
-  // this.playAudio();
+  this.playAudio();
 
     // this.showModal = true;
 
-    this.handleIframe();
+    // this.handleIframe();
     this.remainingTime = 120;
 
     this.options = {
       roomName: this.room,
-      width: 500,
+      width: 900,
       height: 500,
       configOverwrite: { prejoinPageEnabled: false, 
       toolbarButtons: [], 
@@ -283,8 +283,6 @@ stopCamera() {
       // console.warn(data,"This is room item");
       // this.handleMeetStart(data);
   })
-
-  this.api.executeCommand('startShareVideo', 'https://www.youtube.com/watch?v=j9NQitaeuGg');
 }
 
 handleVideoConferenceLeft = async (participant) => {
@@ -294,10 +292,9 @@ handleVideoConferenceLeft = async (participant) => {
 }
 
 handleParticipantJoined = async (participant) => {
-  this.api.executeCommand('stopShareVideo');
   Swal.close();
   this.showModal = true;
-  // this.stopAudio();
+  this.stopAudio();
   clearTimeout(this.timeLeft)
 
   this.api.getRoomsInfo().then(rooms => {

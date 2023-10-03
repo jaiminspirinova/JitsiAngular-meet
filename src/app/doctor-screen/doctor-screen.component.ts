@@ -40,7 +40,7 @@ export class DoctorScreenComponent implements OnInit {
   options: any;
   api: any;
   user: {
-    name: "Test Doctor"
+    name: "Prod Doctor"
   };
   chatRoomID : any;
   sessionID : any;
@@ -64,7 +64,8 @@ export class DoctorScreenComponent implements OnInit {
     this.api.executeCommand('hangup')
     setTimeout(() => {
         this.showModal = false;
-    }, 1000);
+    }, 500);
+    this.api.executeCommand('stopRecording','file');
     this.stopCamera()
   }
 
@@ -98,11 +99,11 @@ export class DoctorScreenComponent implements OnInit {
     this.sessionID = sessionID;
 
     this.showModal = true;
-    this.handleIframe();
+    // this.handleIframe();
 
     this.options = {
       roomName: chatRoomID,
-      width: 500,
+      width: 900,
       height: 500,
       configOverwrite: { prejoinPageEnabled: false, 
       toolbarButtons: [], 
@@ -138,6 +139,7 @@ export class DoctorScreenComponent implements OnInit {
     this.api.addEventListeners({
       videoConferenceJoined: this.handleVideoConferenceJoined,
       videoConferenceLeft: this.handleVideoConferenceLeft,
+      participantLeft: this.handleParticipantLeft,
       log: this.handleError,
       readyToClose: this.handleReadyToClose,
     });
@@ -184,12 +186,15 @@ stopCamera() {
 }
 
   handleVideoConferenceLeft = async (participant) => {
-    // this.api.executeCommand('toggleTileView');
-    // this.handleStartRecording();
-
+    this.api.executeCommand("stopRecording", "file")
     const data = [{RoomID: this.chatRoomID ,MeetingID: this.sessionID ,MeetingEndTime:new Date(new Date().getTime())}];
         // console.warn(data,"This is room item");
     this.handleMeetEnd(data);
+}
+
+handleParticipantLeft = async (participant) => {
+  this.api.executeCommand("stopRecording", "file")
+  this.closeModal();
 }
 
 handleError = async (error) => {
@@ -260,3 +265,4 @@ handleMeetEnd(data){
 
 
 }
+

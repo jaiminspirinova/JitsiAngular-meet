@@ -1,6 +1,7 @@
 import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { HttpClient, HttpHeaders  } from '@angular/common/http';
 import { Router, ActivatedRoute  } from '@angular/router';
+import { async } from 'rxjs/internal/scheduler/async';
 declare var JitsiMeetExternalAPI: any;
 declare const Swal: any;
 
@@ -45,7 +46,7 @@ export class TestPatientComponent implements OnInit {
   roomID : any;
   meetID : any;
 
-  remainingTime: number = 120;
+  remainingTime: number = 10;
 
   private timeLeft: any;
 
@@ -142,15 +143,21 @@ export class TestPatientComponent implements OnInit {
         this.decrementTime();
       }, 1000); // Update every 1 second (1000 milliseconds)
     } else {
+      Swal.close();
       this.closeModal();
-      // this.stopAudio();
+      this.stopAudio();
+      this.handleEventLog("Call Delayed")
     }
   }
 
-  handleCreateRoom() {
+  handleNewMeet() {
+    if(this.room) this.handleCall()
+    else {this.handleCreateRoom(); this.decrementTime();}
+  }
+
+    handleCreateRoom() {
     const currentDateTime = this.getCurrentDateTime();
-    console.warn(currentDateTime);
-    const apiUrl = `${this.baseURL}/api/JitsiAPI/SaveChatRoomSessionDetails`;
+    const apiUrl = `${this.baseURL}/api/JitsiAPI/initMeetingSession`;
     const data = [{CallDatetime: currentDateTime, PatientID: this.randomData.uid, DoctorID: this.randomData.docuid}]
 
     this.httpClient.post<ApiResponse>(apiUrl, data).subscribe(
@@ -181,6 +188,8 @@ export class TestPatientComponent implements OnInit {
 
   handleCall = () => {
 
+    this.handleEventLog("Call Initiated")
+
     Swal.fire({
       allowOutsideClick: false,
       allowEscapeKey: false,
@@ -195,7 +204,7 @@ export class TestPatientComponent implements OnInit {
     // this.showModal = true;
 
     // this.handleIframe();
-    this.remainingTime = 120;
+    // this.remainingTime = 10;
 
     this.options = {
       roomName: this.room,
@@ -235,11 +244,23 @@ export class TestPatientComponent implements OnInit {
     this.api.addEventListeners({
       videoConferenceJoined: this.handleVideoConferenceJoined,
       videoConferenceLeft: this.handleVideoConferenceLeft,
-      participantLeft: this.handleParticipantLeft,
       participantJoined: this.handleParticipantJoined,
-      recordingStatusChanged: this.handleRecordingStatusChanged,
+      participantLeft: this.handleParticipantLeft,
+      recordingStatusChanged: async (res) => {this.handleEventLog(`Recording Status ${res.on}`)},
       // log: this.handleError,
-      readyToClose: this.handleReadyToClose,
+      readyToClose: async (res) => {this.handleEventLog("Close Meeting"); this.api.dispose();},
+      cameraError: async (res) => {this.handleEventLog("Camera Permission Denied")},
+      micError: async (res) => {this.handleEventLog("Mic Permission Denied")},
+      audioAvailabilityChanged: async (res) => {this.handleEventLog("Audio Availability Toggle")},
+      audioMuteStatusChanged: async (res) => {this.handleEventLog("Audio Mute Toggle")},
+      browserSupport: async (res) => {this.handleEventLog(`Browser Supported ${res.supported}`)},
+      tileViewChanged: async (res) => {this.handleEventLog("Tile View Toggle")},
+      notificationTriggered: async (res) => {this.handleEventLog(`App Notification ${res.title}`)},
+      videoAvailabilityChanged: async (res) => {this.handleEventLog("Video Availability Toggle")},
+      videoMuteStatusChanged: async (res) => {this.handleEventLog("Video Mute Toggle")},
+      suspendDetected: async (res) => {this.handleEventLog("Host Computer Suspended")},
+      peerConnectionFailure: async (res) => {this.handleEventLog("P2p Connection Issue")},
+      p2pStatusChanged: async (res) => {this.handleEventLog("P2p Connection Toggle")},
     });
 
   }
@@ -268,15 +289,21 @@ stopCamera() {
   }
 
   handleVideoConferenceJoined = async (participant) => {
+    this.handleEventLog("User Joined");
     this.api.executeCommand('toggleTileView');
-    this.decrementTime();
+    // this.decrementTime();
     // this.handleStartRecording();
 
     this.api.getRoomsInfo().then(rooms => {
       rooms?.rooms.map((item) => {
-          // this.roomID = item?.id;
           this.meetID = item?.jid;
           console.warn(rooms,"This is room item");
+          if(item.participants?.length === 2){
+            Swal.close();
+            this.showModal = true;
+            this.stopAudio();
+            clearTimeout(this.timeLeft)
+          }
       })
 
       const data = [{RoomID: this.room ,MeetingID: this.meetID ,MeetingStartTime:new Date(),DoctorID: this.randomData.docuid, PatientID: this.randomData.uid}];
@@ -286,16 +313,23 @@ stopCamera() {
 }
 
 handleVideoConferenceLeft = async (participant) => {
+  const currentDateTime = this.getCurrentDateTime();
+  this.handleEventLog("User Left");
   this.api.executeCommand("stopRecording", "file")
-  const data = [{RoomID: this.room ,MeetingID: this.meetID ,MeetingEndTime:new Date(new Date().getTime())}];
-  this.handleMeetEnd(data);
+  const data = [{RoomID: this.room ,MeetingID: this.meetID ,MeetingEndTime: currentDateTime }];
+  // this.handleMeetEnd(data);
 }
 
 handleParticipantJoined = async (participant) => {
+  this.handleEventLog("Participant Joined");
   Swal.close();
   this.showModal = true;
   this.stopAudio();
   clearTimeout(this.timeLeft)
+
+  const currentDateTime = this.getCurrentDateTime();
+  const data = [{RoomID: this.room ,MeetingID: this.meetID ,MeetingStartTime: currentDateTime ,DoctorID: this.randomData.docuid, PatientID: this.randomData.uid}];
+  this.handleMeetStart(data);
 
   this.api.getRoomsInfo().then(rooms => {
     rooms?.rooms?.map((item) => {
@@ -308,12 +342,13 @@ handleParticipantJoined = async (participant) => {
 }
 
 handleParticipantLeft = async (participant) => {
+  this.handleEventLog("Participant Left");
   this.api.executeCommand("stopRecording", "file")
   this.closeModal();
-}
 
-handleRecordingStatusChanged = async (res) => {
-  console.warn(res,"THis is handleRecordingStatusChanged")
+  const currentDateTime = this.getCurrentDateTime();
+  const data = [{RoomID: this.room ,MeetingID: this.meetID ,MeetingEndTime: currentDateTime }];
+  this.handleMeetEnd(data);
 }
 
 handleError = async (error) => {
@@ -351,12 +386,13 @@ handleError = async (error) => {
   else return null
 }
 
-handleReadyToClose = async (res) => {
-  this.api.dispose()
+handleCallEvent = async (res, event) => {
+  console.warn(res,event ,"THis is handle call event");
+  // this.handleEventLog("Audio Mute Toggle")
 }
 
 handleMeetStart(data){
-  const apiUrl = `${this.baseURL}/api/JitsiAPI/UpdMeetingStartDetails`;
+  const apiUrl = `${this.baseURL}/api/JitsiAPI/markMeetingStart`;
 
     this.httpClient.post(apiUrl, data).subscribe(
       (data) => {
@@ -370,11 +406,26 @@ handleMeetStart(data){
 }
 
 handleMeetEnd(data){
-  const apiUrl = `${this.baseURL}/api/JitsiAPI/UpdMeetingEndDetails`;
+  const apiUrl = `${this.baseURL}/api/JitsiAPI/markMeetingEnd`;
 
     this.httpClient.post(apiUrl, data).subscribe(
       (data) => {
         console.warn('POST Response:', data);
+      },
+      (error) => {
+        console.error('POST Error:', error);
+      }
+    );
+}
+
+handleEventLog(event){
+  const currentDateTime = this.getCurrentDateTime();
+  const apiUrl = `${this.baseURL}/api/JitsiAPI/updateMeetingEvents`;
+  const data = [{RoomID: this.room, EventID: event, EventTime: currentDateTime}]
+
+    this.httpClient.post(apiUrl, data).subscribe(
+      (data) => {
+        console.warn('This is Event Log Response:', data);
       },
       (error) => {
         console.error('POST Error:', error);

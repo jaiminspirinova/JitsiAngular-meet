@@ -1,8 +1,8 @@
 <h1 style="text-align: center;">This is Patient screen</h1>
 
-<div style="margin-bottom: 2rem;">
+<!-- <div style="margin-bottom: 2rem;">
     <button (click)="generateRandomUser()">Generate Random Patient</button>
-</div>
+</div> -->
   
   <table *ngIf="randomData">
     <tr>
@@ -16,7 +16,7 @@
       <td>{{ randomData.name }}</td>
       <td>{{ randomData.docuid }}</td>
       <td>{{ randomData.docname }}</td>
-      <td><button (click)="handleCreateRoom()">Call</button></td>
+      <td><button (click)="handleNewMeet()">Call</button></td>
     </tr>
   </table>
 
@@ -30,8 +30,8 @@
           </div> -->
       </div>
       <div style="display: flex; justify-content: space-between; margin-top: 1rem;">
-        <!-- <button class="modal-close is-large" aria-label="close" (click)="handleStartRecording()">Start Recording</button>
-        <button class="modal-close is-large" aria-label="close" (click)="getRoomInfo()">Get Room Info</button> -->
+        <!-- <button class="modal-close is-large" aria-label="close" (click)="handleStartRecording()">Start Recording</button> -->
+        <!-- <button class="modal-close is-large" aria-label="close" (click)="getRoomInfo()">Get Room Info</button> -->
         <button class="modal-close is-large" aria-label="close" (click)="closeModal()">Close</button>
       </div>
       <p>Time remaining: {{ remainingTime }}</p>

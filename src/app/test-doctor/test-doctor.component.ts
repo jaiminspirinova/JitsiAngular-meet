@@ -71,7 +71,6 @@ export class TestDoctorComponent implements OnInit {
         this.showModal = false;
     }, 500);
     this.api.executeCommand('stopRecording','file');
-    this.stopCamera()
   }
 
   getCurrentDateTime() {
@@ -108,7 +107,8 @@ export class TestDoctorComponent implements OnInit {
       Swal.close();
       this.closeModal();
       this.stopAudio();
-      this.handleEventLog("Call Delayed")
+      // this.handleEventLog("Call Delayed")
+      this.handleMeetDelayed();
     }
   }
 
@@ -122,12 +122,12 @@ export class TestDoctorComponent implements OnInit {
         // this.responseTable = data.response.table;
 
         const currentTime = new Date();
-        const fifteenMinutesAgo = new Date(currentTime.getTime() - 15 * 60000); // 10 minutes in milliseconds
+        const fifteenMinutesAgo = new Date(currentTime.getTime() - 15 * 60000); // 15 minutes in milliseconds
 
         this.responseTable = data.response.table.filter((row) => {
           const callDateTime = new Date(row.calldatetime);
           const isWithinTimeRange = callDateTime >= fifteenMinutesAgo && callDateTime <= currentTime;
-          const hasProdInPatientID = row.patientID.includes("test"); // Check if "prod" is present in patientID
+          const hasProdInPatientID = row.patientID.includes("test");
 
         return isWithinTimeRange && hasProdInPatientID;
         });
@@ -151,7 +151,8 @@ export class TestDoctorComponent implements OnInit {
 
     // this.showModal = true;
     // this.handleIframe();
-    this.handleEventLog("Call Initiated");
+    // this.handleEventLog("Call Initiated");
+    this.handleMeetInitiated();
     this.decrementTime();
 
     Swal.fire({
@@ -223,29 +224,6 @@ export class TestDoctorComponent implements OnInit {
     });
   }
 
-  handleIframe =  () => {
-    navigator.mediaDevices
-    .getUserMedia({ video: true})
-    .then((stream) => {
-    //   this.localVideo.nativeElement.srcObject = stream;
-      const videoElement = this.localVideo.nativeElement;
-      videoElement.srcObject = stream;
-      this.cameraStream = stream;
-    })
-    .catch((error) => {
-      alert('Error accessing camera');
-    });
-}
-
-stopCamera() {
-    if (this.cameraStream) {
-      const tracks = this.cameraStream.getTracks();
-      tracks.forEach((track) => track.stop());
-      this.localVideo.nativeElement.srcObject = null;
-      this.cameraStream = null;
-    }
-  }
-
   handleVideoConferenceJoined = async (participant) => {
     this.api.executeCommand('toggleTileView');
     // this.handleStartRecording();
@@ -265,7 +243,7 @@ stopCamera() {
 
   handleVideoConferenceLeft = async (participant) => {
     this.api.executeCommand("stopRecording", "file")
-    const data = [{RoomID: this.chatRoomID ,MeetingID: this.sessionID ,MeetingEndTime:new Date(new Date().getTime())}];
+    const data = [{RoomID: this.chatRoomID ,MeetingID: this.sessionID}];
         // console.warn(data,"This is room item");
     // this.handleMeetEnd(data);
 }
@@ -278,7 +256,7 @@ handleParticipantJoined = async (participant) => {
   clearTimeout(this.timeLeft)
 
   const currentDateTime = this.getCurrentDateTime();
-  const data = [{RoomID: this.room ,MeetingID: this.sessionID ,MeetingStartTime: currentDateTime}];
+  const data = [{RoomID: this.room ,MeetingID: this.sessionID}];
   this.handleMeetStart(data);
 
   this.api.getRoomsInfo().then(rooms => {
@@ -298,7 +276,7 @@ handleParticipantLeft = async (participant) => {
   this.closeModal();
 
   const currentDateTime = this.getCurrentDateTime();
-  const data = [{RoomID: this.room ,MeetingID: this.sessionID ,MeetingEndTime: currentDateTime }];
+  const data = [{RoomID: this.room ,MeetingID: this.sessionID}];
   this.handleMeetEnd(data);
 }
 
@@ -368,10 +346,36 @@ handleMeetEnd(data){
     );
 }
 
+handleMeetInitiated(){
+  const apiUrl = `${this.baseURL}/api/JitsiAPI/markMeetinginitiated`;
+  const data = [{RoomID: this.room}]
+    this.httpClient.post(apiUrl, data).subscribe(
+      (data) => {
+        console.warn('POST Response:', data);
+      },
+      (error) => {
+        console.error('POST Error:', error);
+      }
+    );
+}
+
+handleMeetDelayed(){
+  const apiUrl = `${this.baseURL}/api/JitsiAPI/markMeetingdelayed`;
+  const data = [{RoomID: this.room}]
+    this.httpClient.post(apiUrl, data).subscribe(
+      (data) => {
+        console.warn('POST Response:', data);
+      },
+      (error) => {
+        console.error('POST Error:', error);
+      }
+    );
+}
+
 handleEventLog(event){
   const currentDateTime = this.getCurrentDateTime();
   const apiUrl = `${this.baseURL}/api/JitsiAPI/updateMeetingEvents`;
-  const data = [{RoomID: this.room, EventID: event, EventTime: currentDateTime}]
+  const data = [{RoomID: this.room, EventID: event}]
 
     this.httpClient.post(apiUrl, data).subscribe(
       (data) => {

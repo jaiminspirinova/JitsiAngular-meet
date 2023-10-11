@@ -65,7 +65,6 @@ export class TestPatientComponent implements OnInit {
     setTimeout(() => {
         this.showModal = false;
     }, 500);
-    this.stopCamera()
   }
 
   generateRandomMeetingRoomName() {
@@ -146,7 +145,8 @@ export class TestPatientComponent implements OnInit {
       Swal.close();
       this.closeModal();
       this.stopAudio();
-      this.handleEventLog("Call Delayed")
+      // this.handleEventLog("Call Delayed")
+      this.handleMeetDelayed();
     }
   }
 
@@ -158,7 +158,7 @@ export class TestPatientComponent implements OnInit {
     handleCreateRoom() {
     const currentDateTime = this.getCurrentDateTime();
     const apiUrl = `${this.baseURL}/api/JitsiAPI/initMeetingSession`;
-    const data = [{CallDatetime: currentDateTime, PatientID: this.randomData.uid, DoctorID: this.randomData.docuid}]
+    const data = [{PatientID: this.randomData.uid, DoctorID: this.randomData.docuid}]
 
     this.httpClient.post<ApiResponse>(apiUrl, data).subscribe(
       (data) => {
@@ -188,7 +188,8 @@ export class TestPatientComponent implements OnInit {
 
   handleCall = () => {
 
-    this.handleEventLog("Call Initiated")
+    // this.handleEventLog("Call Initiated")
+    this.handleMeetInitiated();
 
     Swal.fire({
       allowOutsideClick: false,
@@ -265,29 +266,6 @@ export class TestPatientComponent implements OnInit {
 
   }
 
-  handleIframe =  () => {
-    navigator.mediaDevices
-    .getUserMedia({ video: true})
-    .then((stream) => {
-    //   this.localVideo.nativeElement.srcObject = stream;
-      const videoElement = this.localVideo.nativeElement;
-      videoElement.srcObject = stream;
-      this.cameraStream = stream;
-    })
-    .catch((error) => {
-      alert('Error accessing camera');
-    });
-}
-
-stopCamera() {
-    if (this.cameraStream) {
-      const tracks = this.cameraStream.getTracks();
-      tracks.forEach((track) => track.stop());
-      this.localVideo.nativeElement.srcObject = null;
-      this.cameraStream = null;
-    }
-  }
-
   handleVideoConferenceJoined = async (participant) => {
     this.handleEventLog("User Joined");
     this.api.executeCommand('toggleTileView');
@@ -305,8 +283,6 @@ stopCamera() {
             clearTimeout(this.timeLeft)
           }
       })
-
-      const data = [{RoomID: this.room ,MeetingID: this.meetID ,MeetingStartTime:new Date(),DoctorID: this.randomData.docuid, PatientID: this.randomData.uid}];
       // console.warn(data,"This is room item");
       // this.handleMeetStart(data);
   })
@@ -316,8 +292,6 @@ handleVideoConferenceLeft = async (participant) => {
   const currentDateTime = this.getCurrentDateTime();
   this.handleEventLog("User Left");
   this.api.executeCommand("stopRecording", "file")
-  const data = [{RoomID: this.room ,MeetingID: this.meetID ,MeetingEndTime: currentDateTime }];
-  // this.handleMeetEnd(data);
 }
 
 handleParticipantJoined = async (participant) => {
@@ -328,7 +302,7 @@ handleParticipantJoined = async (participant) => {
   clearTimeout(this.timeLeft)
 
   const currentDateTime = this.getCurrentDateTime();
-  const data = [{RoomID: this.room ,MeetingID: this.meetID ,MeetingStartTime: currentDateTime ,DoctorID: this.randomData.docuid, PatientID: this.randomData.uid}];
+  const data = [{RoomID: this.room ,MeetingID: this.meetID ,DoctorID: this.randomData.docuid, PatientID: this.randomData.uid}];
   this.handleMeetStart(data);
 
   this.api.getRoomsInfo().then(rooms => {
@@ -347,7 +321,7 @@ handleParticipantLeft = async (participant) => {
   this.closeModal();
 
   const currentDateTime = this.getCurrentDateTime();
-  const data = [{RoomID: this.room ,MeetingID: this.meetID ,MeetingEndTime: currentDateTime }];
+  const data = [{RoomID: this.room ,MeetingID: this.meetID }];
   this.handleMeetEnd(data);
 }
 
@@ -418,10 +392,38 @@ handleMeetEnd(data){
     );
 }
 
+handleMeetInitiated(){
+  const currentDateTime = this.getCurrentDateTime();
+  const apiUrl = `${this.baseURL}/api/JitsiAPI/markMeetinginitiated`;
+  const data = [{RoomID: this.room}]
+    this.httpClient.post(apiUrl, data).subscribe(
+      (data) => {
+        console.warn('POST Response:', data);
+      },
+      (error) => {
+        console.error('POST Error:', error);
+      }
+    );
+}
+
+handleMeetDelayed(){
+  const currentDateTime = this.getCurrentDateTime();
+  const apiUrl = `${this.baseURL}/api/JitsiAPI/markMeetingdelayed`;
+  const data = [{RoomID: this.room}]
+    this.httpClient.post(apiUrl, data).subscribe(
+      (data) => {
+        console.warn('POST Response:', data);
+      },
+      (error) => {
+        console.error('POST Error:', error);
+      }
+    );
+}
+
 handleEventLog(event){
   const currentDateTime = this.getCurrentDateTime();
   const apiUrl = `${this.baseURL}/api/JitsiAPI/updateMeetingEvents`;
-  const data = [{RoomID: this.room, EventID: event, EventTime: currentDateTime}]
+  const data = [{RoomID: this.room, EventID: event }]
 
     this.httpClient.post(apiUrl, data).subscribe(
       (data) => {

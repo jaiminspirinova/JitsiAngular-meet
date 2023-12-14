@@ -27,11 +27,13 @@ export class DoctorScreenComponent  implements OnInit {
 
   @ViewChild('localVideo') localVideo: ElementRef;
 
+  isCustomClassActive: boolean = false;
+
   private cameraStream: MediaStream | null = null;
 
   showModal: boolean = false;
 
-  baseURL = "https://ec2-3-111-171-157.ap-south-1.compute.amazonaws.com";
+  baseURL = "https://ec2-65-1-95-95.ap-south-1.compute.amazonaws.com";
 
   responseTable: ApiResponse['response']['table'] = [];
 
@@ -63,6 +65,13 @@ export class DoctorScreenComponent  implements OnInit {
       // })
     }, 5000);
 
+  }
+
+  expandContainer() {
+    this.isCustomClassActive = true;
+  }
+  minimizeContainer() {
+    this.isCustomClassActive = false;
   }
 
   closeModal() {
@@ -167,8 +176,8 @@ export class DoctorScreenComponent  implements OnInit {
 
     this.options = {
       roomName: chatRoomID,
-      width: 900,
-      height: 500,
+      width: "100%",
+      height: "100%",
       configOverwrite: { prejoinPageEnabled: false, 
       toolbarButtons: [], 
       apiLogLevels: ['error'],

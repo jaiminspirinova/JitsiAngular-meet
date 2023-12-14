@@ -23,17 +23,21 @@
     </tbody>
   </table>
 
-  <div class="modal" [ngClass]="{ 'is-active': showModal }">
+  <!-- <div class="modal" [ngClass]="{ 'is-active': showModal }">
     <div class="modal-background"></div>
     <div class="modal-content">
       <div style="display: flex; gap: 1rem;">
           <div id="jitsi-iframe"></div>
-          <!-- <div style="background-color: black; display: flex; justify-content: center; align-items: center;">
-            <video style="margin: 8px; width: 500px; height: 270px; border-radius: 6px;" #localVideo autoplay></video>
-          </div> -->
       </div>
       <button class="modal-close is-large" aria-label="close" (click)="closeModal()">Close</button>
     </div>
+  </div> -->
+
+  <div [ngClass]="{ 'expanded-container': isCustomClassActive, 'corner-container': !isCustomClassActive }" class="corner-container">
+    <button (click)="expandContainer()">Expand</button>
+    &nbsp;
+    <button (click)="minimizeContainer()">Minimize</button>
+    <div style="height: 95%;" id="jitsi-iframe"></div>
   </div>
 
   <audio id="ringingAudio"  loop>

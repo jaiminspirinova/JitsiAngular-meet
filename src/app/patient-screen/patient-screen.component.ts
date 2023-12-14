@@ -30,11 +30,13 @@ export class PatientScreenComponent  implements OnInit {
 
   @ViewChild('localVideo') localVideo: ElementRef;
 
+  isCustomClassActive: boolean = false;
+
   private cameraStream: MediaStream | null = null;
 
   showModal: boolean = false;
 
-  baseURL = "https://ec2-3-111-171-157.ap-south-1.compute.amazonaws.com";
+  baseURL = "https://ec2-65-1-95-95.ap-south-1.compute.amazonaws.com";
 
   randomData: { uid: string; docuid: string; name: string; docname: string } | null = null;
 
@@ -66,6 +68,13 @@ export class PatientScreenComponent  implements OnInit {
         this.showModal = false;
     }, 500);
     this.stopCamera()
+  }
+
+  expandContainer() {
+    this.isCustomClassActive = true;
+  }
+  minimizeContainer() {
+    this.isCustomClassActive = false;
   }
 
   generateRandomMeetingRoomName() {
@@ -208,8 +217,8 @@ export class PatientScreenComponent  implements OnInit {
 
     this.options = {
       roomName: this.room,
-      width: 900,
-      height: 500,
+      width: "100%",
+      height: "100%",
       configOverwrite: { prejoinPageEnabled: false, 
       toolbarButtons: [], 
       apiLogLevels: ['error'],
@@ -226,6 +235,9 @@ export class PatientScreenComponent  implements OnInit {
                   min: 240
               }
           }
+      },
+      tileView: {
+        numberOfVisibleTiles: 2,
       },
       disableShortcuts: false,
       },

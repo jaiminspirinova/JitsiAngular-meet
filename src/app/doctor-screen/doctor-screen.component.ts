@@ -33,7 +33,7 @@ export class DoctorScreenComponent  implements OnInit {
 
   showModal: boolean = false;
 
-  baseURL = "https://ec2-65-1-95-95.ap-south-1.compute.amazonaws.com";
+  baseURL = "https://ec2-65-1-147-192.ap-south-1.compute.amazonaws.com";
 
   responseTable: ApiResponse['response']['table'] = [];
 
